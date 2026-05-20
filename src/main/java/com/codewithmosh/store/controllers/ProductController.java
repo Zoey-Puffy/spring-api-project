@@ -1,6 +1,5 @@
 package com.codewithmosh.store.controllers;
 
-import com.codewithmosh.store.dtos.ProductRequest;
 import com.codewithmosh.store.dtos.ProductDto;
 import com.codewithmosh.store.entities.Product;
 import com.codewithmosh.store.mappers.ProductMapper;
@@ -46,35 +45,43 @@ public class ProductController {
 
     @PostMapping
     public ResponseEntity<ProductDto> createProduct(
-            @RequestBody ProductRequest request,
+            @RequestBody ProductDto request,
             UriComponentsBuilder builder) {
-        if(categoryRepository.findById(request.getCategoryId()).isEmpty()) {
-            return ResponseEntity.notFound().build();
+        var category = categoryRepository.findById(request.getCategoryId()).orElse(null);
+        if(category == null) {
+            return ResponseEntity.badRequest().build();
         }
 
         var product = productMapper.toEntity(request);
-        categoryRepository.findById(request.getCategoryId()).ifPresent(product::setCategory);
+        product.setCategory(category);
         productRepository.save(product);
 
-        var productDto = productMapper.toDto(product);
+        request.setId(product.getId());
 
-        var uri = builder.path("/products/{id}").buildAndExpand(productDto.getId()).toUri();
-        return ResponseEntity.created(uri).body(productDto);
+        var uri = builder.path("/products/{id}").buildAndExpand(request.getId()).toUri();
+        return ResponseEntity.created(uri).body(request);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductDto> updateProduct(
             @PathVariable Long id,
-            @RequestBody ProductRequest request) {
+            @RequestBody ProductDto request) {
+        var category = categoryRepository.findById(request.getCategoryId()).orElse(null);
+        if(category == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
         var product = productRepository.findById(id).orElse(null);
         if (product == null) {
             return ResponseEntity.notFound().build();
         }
 
         productMapper.updateProduct(request,product);
+        product.setCategory(category);
         productRepository.save(product);
+        request.setId(product.getId());
 
-        return ResponseEntity.ok(productMapper.toDto(product));
+        return ResponseEntity.ok(request);
     }
 
     @DeleteMapping("/{id}")
@@ -83,8 +90,8 @@ public class ProductController {
         if (product == null) {
             return ResponseEntity.notFound().build();
         }
-//        productRepository.delete(product);
-        productRepository.deleteById(id);
+        productRepository.delete(product);
+//        productRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }
