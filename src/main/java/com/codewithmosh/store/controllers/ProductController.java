@@ -1,6 +1,6 @@
 package com.codewithmosh.store.controllers;
 
-import com.codewithmosh.store.dtos.CreateProductRequest;
+import com.codewithmosh.store.dtos.ProductRequest;
 import com.codewithmosh.store.dtos.ProductDto;
 import com.codewithmosh.store.entities.Product;
 import com.codewithmosh.store.mappers.ProductMapper;
@@ -46,7 +46,7 @@ public class ProductController {
 
     @PostMapping
     public ResponseEntity<ProductDto> createProduct(
-            @RequestBody CreateProductRequest request,
+            @RequestBody ProductRequest request,
             UriComponentsBuilder builder) {
         if(categoryRepository.findById(request.getCategoryId()).isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -60,5 +60,20 @@ public class ProductController {
 
         var uri = builder.path("/products/{id}").buildAndExpand(productDto.getId()).toUri();
         return ResponseEntity.created(uri).body(productDto);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductDto> updateProduct(
+            @PathVariable Long id,
+            @RequestBody ProductRequest request) {
+        var product = productRepository.findById(id).orElse(null);
+        if (product == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        productMapper.updateProduct(request,product);
+        productRepository.save(product);
+
+        return ResponseEntity.ok(productMapper.toDto(product));
     }
 }
