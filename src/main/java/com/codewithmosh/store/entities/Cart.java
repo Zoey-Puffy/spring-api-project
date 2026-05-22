@@ -23,5 +23,5 @@ public class Cart {
     private LocalDate dateCreated;
 
     @OneToMany(mappedBy = "cart")
-    private Set<CartItem> cartItems = new LinkedHashSet<>();
+    private Set<CartItem> cartItems = new LinkedHashSet<>()
 }
