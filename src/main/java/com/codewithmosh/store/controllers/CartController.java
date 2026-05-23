@@ -1,21 +1,20 @@
 package com.codewithmosh.store.controllers;
 
+import com.codewithmosh.store.dtos.AddItemToCartRequest;
 import com.codewithmosh.store.dtos.CartDto;
 import com.codewithmosh.store.dtos.CartItemDto;
 import com.codewithmosh.store.entities.Cart;
 import com.codewithmosh.store.entities.CartItem;
-import com.codewithmosh.store.mappers.CartItemMapper;
 import com.codewithmosh.store.mappers.CartMapper;
 import com.codewithmosh.store.repositories.CartRepository;
 import com.codewithmosh.store.repositories.ProductRepository;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -24,7 +23,6 @@ import java.util.UUID;
 public class CartController {
     private final CartRepository cartRepository;
     private final CartMapper cartMapper;
-    private final CartItemMapper cartItemMapper;
     private final ProductRepository productRepository;
 
     @PostMapping
@@ -41,34 +39,40 @@ public class CartController {
         return ResponseEntity.created(uri).body(cartDto);
     }
 
-    @PostMapping("/{cartId}")
-    public ResponseEntity<CartDto> addToCart(
+    @PostMapping("/{cartId}/items")
+    public ResponseEntity<CartItemDto> addToCart(
             @PathVariable UUID cartId,
-            @Valid @RequestBody CartItemDto newItem
+            @Valid @RequestBody AddItemToCartRequest request
             ) {
         var cart = cartRepository.findById(cartId).orElse(null);
         if (cart == null) {
             return ResponseEntity.notFound().build();
         }
 
-        Optional<CartItem> existingItem = cart.getCartItems().stream()
-                .filter(item -> item.getProduct() != null && Objects.equals(item.getProduct().getId(), newItem.getProductId()))
-                .findFirst();
+        var product = productRepository.findById(request.getProductId()).orElse(null);
 
-        if (existingItem.isPresent()) {
-            CartItem item = existingItem.get();
-            item.setQuantity(item.getQuantity() + newItem.getQuantity());
+        if(product == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        var cartItem = cart.getCartItems().stream()
+                .filter(item -> item.getProduct().getId().equals(product.getId()))
+                .findFirst().orElse(null);
+
+        if (cartItem != null) {
+            cartItem.setQuantity(cartItem.getQuantity() + 1);
         } else {
-            CartItem cartItem = cartItemMapper.toEntity(newItem);
-            var product = productRepository.findById(newItem.getProductId())
-                    .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+            cartItem = new CartItem();
             cartItem.setProduct(product);
-
-            cart.addItem(cartItemMapper.toEntity(newItem));
+            cartItem.setQuantity(1);
+            cartItem.setCart(cart);
+            cart.getCartItems().add(cartItem);
         }
 
         cartRepository.save(cart);
 
-        return ResponseEntity.ok(cartMapper.toDto(cart));
+        var cartItemDto = cartMapper.toDto(cartItem);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(cartItemDto);
     }
 }
