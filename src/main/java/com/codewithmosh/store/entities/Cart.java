@@ -22,6 +22,11 @@ public class Cart {
     @Column(name = "date_created", insertable = false, updatable = false)
     private LocalDate dateCreated;
 
-    @OneToMany(mappedBy = "cart")
+    @OneToMany(mappedBy = "cart", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     private Set<CartItem> cartItems = new LinkedHashSet<>();
+
+    public void addItem(CartItem item) {
+        cartItems.add(item);
+        item.setCart(this);
+    }
 }
