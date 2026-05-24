@@ -15,8 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.math.BigDecimal;
-import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -46,7 +44,7 @@ public class CartController {
             @PathVariable UUID cartId,
             @Valid @RequestBody AddItemToCartRequest request
             ) {
-        var cart = cartRepository.findById(cartId).orElse(null);
+        var cart = cartRepository.getCartWithItems(cartId).orElse(null);
         if (cart == null) {
             return ResponseEntity.notFound().build();
         }
@@ -57,7 +55,7 @@ public class CartController {
             return ResponseEntity.badRequest().build();
         }
 
-        var cartItem = cart.getCartItems().stream()
+        var cartItem = cart.getItems().stream()
                 .filter(item -> item.getProduct().getId().equals(product.getId()))
                 .findFirst().orElse(null);
 
@@ -68,7 +66,7 @@ public class CartController {
             cartItem.setProduct(product);
             cartItem.setQuantity(1);
             cartItem.setCart(cart);
-            cart.getCartItems().add(cartItem);
+            cart.getItems().add(cartItem);
         }
 
         cartRepository.save(cart);
@@ -82,19 +80,11 @@ public class CartController {
     public ResponseEntity<CartDto> getCart(
             @PathVariable UUID cartId
     ) {
-        var cart = cartRepository.findById(cartId).orElse(null);
+        var cart = cartRepository.getCartWithItems(cartId).orElse(null);
         if (cart == null) {
             return ResponseEntity.notFound().build();
         }
 
-        var cartDto = cartMapper.toDto(cart);
-
-        cartDto.setItems(cart.getCartItems().stream().map(cartMapper::toDto).toList());
-        cartDto.setTotalPrice(cartDto.getItems().stream()
-                .map(CartItemDto::getTotalPrice)
-                .filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add));
-
-        return ResponseEntity.ok(cartDto);
+        return ResponseEntity.ok(cartMapper.toDto(cart));
     }
 }
