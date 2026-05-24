@@ -15,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.math.BigDecimal;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -74,5 +76,25 @@ public class CartController {
         var cartItemDto = cartMapper.toDto(cartItem);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(cartItemDto);
+    }
+
+    @GetMapping("/{cartId}")
+    public ResponseEntity<CartDto> getCart(
+            @PathVariable UUID cartId
+    ) {
+        var cart = cartRepository.findById(cartId).orElse(null);
+        if (cart == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        var cartDto = cartMapper.toDto(cart);
+
+        cartDto.setItems(cart.getCartItems().stream().map(cartMapper::toDto).toList());
+        cartDto.setTotalPrice(cartDto.getItems().stream()
+                .map(CartItemDto::getTotalPrice)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add));
+
+        return ResponseEntity.ok(cartDto);
     }
 }
