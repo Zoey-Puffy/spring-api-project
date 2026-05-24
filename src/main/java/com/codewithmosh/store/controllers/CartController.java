@@ -3,6 +3,7 @@ package com.codewithmosh.store.controllers;
 import com.codewithmosh.store.dtos.AddItemToCartRequest;
 import com.codewithmosh.store.dtos.CartDto;
 import com.codewithmosh.store.dtos.CartItemDto;
+import com.codewithmosh.store.dtos.UpdateCartItemRequest;
 import com.codewithmosh.store.entities.Cart;
 import com.codewithmosh.store.entities.CartItem;
 import com.codewithmosh.store.mappers.CartMapper;
@@ -86,5 +87,26 @@ public class CartController {
         }
 
         return ResponseEntity.ok(cartMapper.toDto(cart));
+    }
+
+    @PutMapping("/{cartId}/items/{productId}")
+    public ResponseEntity<CartItemDto> updateCartItem(
+            @PathVariable UUID cartId,
+            @PathVariable Long productId,
+            @Valid @RequestBody UpdateCartItemRequest request
+    ){
+        var cart = cartRepository.getCartWithItems(cartId).orElse(null);
+        if (cart == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        var cartItem = cart.getItems().stream().filter(item -> item.getProduct().getId().equals(productId)).findFirst().orElse(null);
+        if (cartItem == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        cartItem.setQuantity(request.getQuantity());
+
+        return ResponseEntity.ok(cartMapper.toDto(cartItem));
     }
 }
