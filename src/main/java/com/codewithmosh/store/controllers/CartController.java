@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -90,22 +91,25 @@ public class CartController {
     }
 
     @PutMapping("/{cartId}/items/{productId}")
-    public ResponseEntity<CartItemDto> updateCartItem(
+    public ResponseEntity<?> updateItem(
             @PathVariable UUID cartId,
             @PathVariable Long productId,
             @Valid @RequestBody UpdateCartItemRequest request
     ){
         var cart = cartRepository.getCartWithItems(cartId).orElse(null);
         if (cart == null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    Map.of("error", "Cart not found."));
         }
 
         var cartItem = cart.getItems().stream().filter(item -> item.getProduct().getId().equals(productId)).findFirst().orElse(null);
         if (cartItem == null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    Map.of("error", "Product was not found in the cart."));
         }
 
         cartItem.setQuantity(request.getQuantity());
+        cartRepository.save(cart);
 
         return ResponseEntity.ok(cartMapper.toDto(cartItem));
     }
