@@ -111,14 +111,8 @@ public class CartController {
                     Map.of("error", "Cart not found."));
         }
 
-        var cartItem = cart.getItem(productId);
-        if (cartItem == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    Map.of("error", "Product was not found in the cart."));
-        }
-
-        cart.removeItem(cartItem);
+        cart.removeItem(productId);
         cartRepository.save(cart);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }
