@@ -61,7 +61,6 @@ public class Cart {
     }
 
     public void clearCart() {
-        this.items.forEach(item -> item.setCart(null));
         this.items.clear();
     }
 }

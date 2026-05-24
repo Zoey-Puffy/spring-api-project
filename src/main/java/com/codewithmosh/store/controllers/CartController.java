@@ -117,13 +117,12 @@ public class CartController {
     }
 
     @DeleteMapping("/{cartId}/items")
-    public ResponseEntity<?> deleteItems(
+    public ResponseEntity<Void> deleteItems(
             @PathVariable UUID cartId
     ) {
         var cart = cartRepository.getCartWithItems(cartId).orElse(null);
         if (cart == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    Map.of("error", "Cart not found."));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
         cart.clearCart();
