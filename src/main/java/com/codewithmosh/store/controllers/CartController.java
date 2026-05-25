@@ -45,27 +45,23 @@ public class CartController {
     }
 
     @GetMapping("/{cartId}")
-    public ResponseEntity<CartDto> getCart(
+    public CartDto getCart(
             @PathVariable UUID cartId
     ) {
-        var cartDto = cartService.getCart(cartId);
-
-        return ResponseEntity.ok(cartDto);
+        return cartService.getCart(cartId);
     }
 
     @PutMapping("/{cartId}/items/{productId}")
-    public ResponseEntity<?> updateItem(
+    public CartItemDto updateItem(
             @PathVariable UUID cartId,
             @PathVariable Long productId,
             @Valid @RequestBody UpdateCartItemRequest request
     ){
-       var cartItemDto = cartService.updateItem(cartId, productId, request.getQuantity());
-
-        return ResponseEntity.ok(cartItemDto);
+        return cartService.updateItem(cartId, productId, request.getQuantity());
     }
 
     @DeleteMapping("/{cartId}/items/{productId}")
-    public ResponseEntity<?> deleteItem(
+    public ResponseEntity<Void> deleteItem(
             @PathVariable UUID cartId,
             @PathVariable Long productId
     ) {
