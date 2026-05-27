@@ -110,22 +110,4 @@ public class UserController {
         userRepository.save(user);
         return ResponseEntity.noContent().build();
     }
-
-    @PostMapping("/auth/login")
-    public ResponseEntity<?> login(@RequestBody LoginDto loginDto) {
-        var user = userRepository.findUserByEmail(loginDto.getEmail());
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("user", "not found"));
-        }
-
-        var storedPassword = passwordEncoder.encode(user.getPassword());
-        var reportPassword = passwordEncoder.encode(loginDto.getPassword());
-
-
-        if(!storedPassword.equals(reportPassword)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("password", "unauthorized"));
-        }
-
-        return ResponseEntity.ok().build();
-    }
 }
