@@ -1,9 +1,6 @@
 package com.codewithmosh.store.controllers;
 
-import com.codewithmosh.store.dtos.ChangePasswordRequest;
-import com.codewithmosh.store.dtos.RegisterUserRequest;
-import com.codewithmosh.store.dtos.UpdateUserRequest;
-import com.codewithmosh.store.dtos.UserDto;
+import com.codewithmosh.store.dtos.*;
 import com.codewithmosh.store.mappers.UserMapper;
 import com.codewithmosh.store.repositories.UserRepository;
 import jakarta.validation.Valid;
@@ -112,5 +109,23 @@ public class UserController {
         user.setPassword(request.getNewPassword());
         userRepository.save(user);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/auth/login")
+    public ResponseEntity<?> login(@RequestBody LoginDto loginDto) {
+        var user = userRepository.findUserByEmail(loginDto.getEmail());
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("user", "not found"));
+        }
+
+        var storedPassword = passwordEncoder.encode(user.getPassword());
+        var reportPassword = passwordEncoder.encode(loginDto.getPassword());
+
+
+        if(!storedPassword.equals(reportPassword)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("password", "unauthorized"));
+        }
+
+        return ResponseEntity.ok().build();
     }
 }
