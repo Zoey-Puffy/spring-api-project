@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Map;
 
 @Service
 public class JwtService {
@@ -22,6 +23,7 @@ public class JwtService {
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 1000 * tokenExpiration))
                 .signWith(Keys.hmacShaKeyFor(secret.getBytes()))
+                .claims(Map.of("email", "test@domain.com", "name", "userName")) //怎么获取email和name？
                 .compact();
     }
 
@@ -47,4 +49,6 @@ public class JwtService {
     public String getIdFromToken(String token) {
         return getClaims(token).getSubject();
     }
+
+    //怎么获取email和name呢？靠上面类似的方法？
 }
