@@ -1,5 +1,6 @@
 package com.codewithmosh.store.services;
 
+import com.codewithmosh.store.entities.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -8,22 +9,22 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.Map;
 
 @Service
 public class JwtService {
     @Value("${spring.jwt.secret}")
     private String secret;
 
-    public String generateToken(Long id) {
+    public String generateToken(User user) {
         final long tokenExpiration = 86400; // 1 day
 
         return Jwts.builder()
-                .subject(id.toString())
+                .subject(user.getId().toString())
+                .claim("email", user.getEmail())
+                .claim("name", user.getName())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 1000 * tokenExpiration))
                 .signWith(Keys.hmacShaKeyFor(secret.getBytes()))
-                .claims(Map.of("email", "test@domain.com", "name", "userName")) //怎么获取email和name？
                 .compact();
     }
 
@@ -46,9 +47,7 @@ public class JwtService {
                 .getPayload();
     }
 
-    public String getIdFromToken(String token) {
-        return getClaims(token).getSubject();
+    public Long getUserIdFromToken(String token) {
+        return Long.valueOf(getClaims(token).getSubject());
     }
-
-    //怎么获取email和name呢？靠上面类似的方法？
 }

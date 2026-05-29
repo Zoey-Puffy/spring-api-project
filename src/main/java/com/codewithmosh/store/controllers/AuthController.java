@@ -27,15 +27,15 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<JwtResponse> login(@Valid @RequestBody LoginRequest request) {
-        //这用来干嘛的？
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getId(),
+                        request.getEmail(),
                         request.getPassword()
                 )
         );
 
-        var token = jwtService.generateToken(request.getId());
+        var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
+        var token = jwtService.generateToken(user);
 
         return ResponseEntity.ok(new JwtResponse(token));
     }
