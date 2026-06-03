@@ -15,15 +15,10 @@ public class OrderService {
     private final AuthService authService;
     private final OrderMapper orderMapper;
 
-    public List<OrderDto> getOrders(){
-        // 1.get current user
+    public List<OrderDto> getAllOrders(){
         var user = authService.getCurrentUser();
-        // 2.check orders by userId -- findByCustomerId
-        var orders = orderRepository.findByCustomerId(user.getId());
-//        if(orders.isEmpty()){
-//        }
-        // 3.return List of orderId
-        // 4. toDto
+        var orders = orderRepository.getAllByCustomer(user);
+
         return orders.stream().map(orderMapper::toDto).toList();
     }
 }

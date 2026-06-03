@@ -9,14 +9,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@RestController
 @AllArgsConstructor
+@RestController
 @RequestMapping("/orders")
 public class OrderController {
     private final OrderService orderService;
 
     @GetMapping
-    public List<OrderDto> getOrders() {
-        return orderService.getOrders();
+    public List<OrderDto> getAllOrders() {
+        return orderService.getAllOrders();
     }
 }
