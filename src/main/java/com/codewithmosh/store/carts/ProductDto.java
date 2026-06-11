@@ -1,4 +1,4 @@
-package com.codewithmosh.store.products;
+package com.codewithmosh.store.carts;
 
 import lombok.Data;
 

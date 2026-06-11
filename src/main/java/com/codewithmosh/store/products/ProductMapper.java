@@ -1,5 +1,6 @@
 package com.codewithmosh.store.products;
 
+import com.codewithmosh.store.carts.ProductDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
